@@ -2,7 +2,7 @@
 	"author": "touk",
 	"name": "touk-angular-lib",
 	"description": "validators, helpers",
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"homepage": "",
 	"repository": {
 		"type": "git",
