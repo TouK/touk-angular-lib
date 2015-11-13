@@ -1,4 +1,16 @@
 'use strict';
+angular.module('touk.applyFilter', []).run([
+  '$rootScope', '$parse', function($scope, $parse) {
+    return $scope.applyFilter = function(filter, value) {
+      if (filter) {
+        return $parse(value + " | " + filter)();
+      } else {
+        return value;
+      }
+    };
+  }
+]);
+;'use strict';
 angular.module('touk.dowod.directives', ['touk.dowod.validators']).directive('validateDowod', [
   'dowod', 'HotKeysElement', function(validator, HotKeys) {
     return {
