@@ -22,7 +22,7 @@ angular.module 'touk.locale.service', [
 
 			$rootScope.$on '$translateChangeSuccess', (event, data) ->
 				document.documentElement.setAttribute 'lang', data.language
-				tmhDynamicLocale.set data.language.toLowerCase().replace /-/g, '_'
+				tmhDynamicLocale.set data.language.toLowerCase().replace /_/g, '-'
 
 			@setLocale LOCALES.preferredLocale
 
