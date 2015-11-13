@@ -20,7 +20,7 @@ angular.module 'touk.locale.directive', [
 				@currentLocaleDisplayName = @$service.getLocaleDisplayName()
 				@localesDisplayNames = @$service.getLocalesDisplayNames()
 
-			changeLanguage: (@currentLocaleDisplayName) =>
+			changeLanguage: (@currentLocaleDisplayName = @currentLocaleDisplayName) =>
 				@$service.setLocaleByDisplayName @currentLocaleDisplayName
 	]
 	controllerAs: 'LSC'

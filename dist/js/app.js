@@ -209,7 +209,7 @@ angular.module('touk.locale.directive', ['touk.locale.service']).directive('lang
         }
 
         LanguageSelect.prototype.changeLanguage = function(currentLocaleDisplayName) {
-          this.currentLocaleDisplayName = currentLocaleDisplayName;
+          this.currentLocaleDisplayName = currentLocaleDisplayName != null ? currentLocaleDisplayName : this.currentLocaleDisplayName;
           return this.$service.setLocaleByDisplayName(this.currentLocaleDisplayName);
         };
 
@@ -234,9 +234,7 @@ LocaleService = (function() {
     this.getLocaleDisplayName = bind(this.getLocaleDisplayName, this);
     this.setLocale = bind(this.setLocale, this);
     this.checkLocaleIsValid = bind(this.checkLocaleIsValid, this);
-    this.localesObj = LOCALES.localesObj, this.preferredLocale = LOCALES.preferredLocale;
-    this.locales = _.keys(this.localesObj);
-    this.localesNames = _.values(this.localesObj);
+    this.locales = LOCALES.locales, this.preferredLocale = LOCALES.preferredLocale;
     if (!_.size(this.locales)) {
       console.error("There are no locales provided.\nDefine \"LOCALES\" value.");
     }
@@ -245,11 +243,11 @@ LocaleService = (function() {
       document.documentElement.setAttribute('lang', data.language);
       return tmhDynamicLocale.set(data.language.toLowerCase().replace(/_/g, '-'));
     });
-    this.setLocale(LOCALES.preferredLocale);
+    this.setLocale(this.preferredLocale);
   }
 
   LocaleService.prototype.checkLocaleIsValid = function(locale) {
-    return this.locales.indexOf(locale) !== -1;
+    return _.has(this.locales, locale);
   };
 
   LocaleService.prototype.setLocale = function(locale) {
@@ -261,15 +259,15 @@ LocaleService = (function() {
   };
 
   LocaleService.prototype.getLocaleDisplayName = function() {
-    return this.localesObj[this.currentLocale];
+    return this.locales[this.currentLocale];
   };
 
   LocaleService.prototype.setLocaleByDisplayName = function(localeDisplayName) {
-    return this.setLocale(this.locales[this.localesNames.indexOf(localeDisplayName)]);
+    return this.setLocale(_.findKey(this.locales, _.matches(localeDisplayName)));
   };
 
   LocaleService.prototype.getLocalesDisplayNames = function() {
-    return this.localesNames;
+    return _.values(this.locales);
   };
 
   return LocaleService;
@@ -281,15 +279,13 @@ angular.module('touk.locale.service', ['pascalprecht.translate', 'tmh.dynamicLoc
   return new (LocaleServiceProvider = (function() {
     function LocaleServiceProvider() {}
 
-    LocaleServiceProvider.prototype.LOCALES = '';
-
     LocaleServiceProvider.prototype.$get = [
       '$translate', '$rootScope', 'tmhDynamicLocale', function() {
         return (function(func, args, ctor) {
           ctor.prototype = func.prototype;
           var child = new ctor, result = func.apply(child, args);
           return Object(result) === result ? result : child;
-        })(LocaleService, slice.call(arguments).concat([LOCALES]), function(){});
+        })(LocaleService, slice.call(arguments).concat([this.LOCALES]), function(){});
       }
     ];
 

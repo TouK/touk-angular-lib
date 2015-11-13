@@ -2,9 +2,7 @@
 
 class LocaleService
 	constructor: (@$translate, $rootScope, tmhDynamicLocale, LOCALES) ->
-		{@localesObj, @preferredLocale} = LOCALES
-		@locales = _.keys @localesObj
-		@localesNames = _.values @localesObj
+		{@locales, @preferredLocale} = LOCALES
 
 		unless _.size @locales
 			console.error """
@@ -18,10 +16,10 @@ class LocaleService
 			document.documentElement.setAttribute 'lang', data.language
 			tmhDynamicLocale.set data.language.toLowerCase().replace /_/g, '-'
 
-		@setLocale LOCALES.preferredLocale
+		@setLocale @preferredLocale
 
 	checkLocaleIsValid: (locale) =>
-		@locales.indexOf(locale) isnt -1
+		_.has @locales, locale
 
 	setLocale: (locale) =>
 		unless @checkLocaleIsValid locale
@@ -31,13 +29,13 @@ class LocaleService
 		@$translate.use locale
 
 	getLocaleDisplayName: =>
-		@localesObj[@currentLocale]
+		@locales[@currentLocale]
 
 	setLocaleByDisplayName: (localeDisplayName) =>
-		@setLocale @locales[@localesNames.indexOf localeDisplayName]
+		@setLocale _.findKey @locales, _.matches localeDisplayName
 
-	getLocalesDisplayNames: =>
-		@localesNames
+	getLocalesDisplayNames: => _.values @locales
+
 angular.module 'touk.locale.service', [
 	'pascalprecht.translate'
 	'tmh.dynamicLocale'
@@ -45,9 +43,7 @@ angular.module 'touk.locale.service', [
 
 .provider 'LocaleService', ->
 	new class LocaleServiceProvider
-		LOCALES: ''
-
 		$get: [
 			'$translate', '$rootScope', 'tmhDynamicLocale'
-			-> new LocaleService(arguments..., LOCALES)
+			-> new LocaleService(arguments..., @LOCALES)
 		]
