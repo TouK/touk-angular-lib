@@ -6,7 +6,13 @@ angular.module 'touk.locale.directive', [
 
 .directive 'languageChangeSelect', ->
 	restrict: 'EA'
-	templateUrl: "/templates/locale/languageSelect.html"
+	template: """
+		<select
+			ng-model="LSC.currentLocaleDisplayName"
+			ng-options="name for name in LSC.localesDisplayNames"
+			ng-change="LSC.changeLanguage()"
+		></select>
+	"""
 	controller: [
 		'LocaleService', '$scope'
 		class LanguageSelect

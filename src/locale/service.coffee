@@ -13,7 +13,10 @@ angular.module 'touk.locale.service', [
 			@localesNames = _.values @localesObj
 
 			unless _.size @locales
-				console.error 'There are no locales provided'
+				console.error """
+					There are no locales provided.
+					Define "LOCALES" value.
+				"""
 
 			@currentLocale = @$translate.proposedLanguage()
 
