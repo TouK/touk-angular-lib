@@ -30,7 +30,7 @@ module.exports = (config) ->
 		reporters: [
 #			"dots"
 #			"progress"
-			"coverage"
+#			"coverage"
 #			"junit"
 			"spec"
 		]
