@@ -848,7 +848,7 @@ angular.module('touk.promisedLink', []).directive('promisedFn', [
           });
         };
         return element.on('click', function(event) {
-          var ref;
+          var fn;
           if ((event.originalEvent || event).preventedDefault) {
             return;
           }
@@ -859,7 +859,9 @@ angular.module('touk.promisedLink', []).directive('promisedFn', [
             metaKey: event.metaKey,
             button: event.button
           };
-          if ((ref = fnGetter(scope)) != null ? typeof ref.then === "function" ? ref.then(simulateDefault) : void 0 : void 0) {
+          fn = fnGetter(scope);
+          fn = (fn != null ? fn.$promise : void 0) || fn;
+          if (typeof fn.then === "function" ? fn.then(simulateDefault) : void 0) {
             return event.preventDefault();
           }
         });

@@ -29,6 +29,8 @@ angular.module 'touk.promisedLink', []
 					shiftKey: event.shiftKey
 					metaKey: event.metaKey
 					button: event.button
-				if fnGetter(scope)?.then?(simulateDefault)
+				fn = fnGetter(scope)
+				fn = fn?.$promise or fn
+				if fn.then?(simulateDefault)
 					event.preventDefault()
 ]
