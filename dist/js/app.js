@@ -827,6 +827,47 @@ angular.module('touk.plurals.filters', ['smart']).run([
   }
 ]);
 ;'use strict';
+angular.module('touk.promisedLink', []).directive('promisedFn', [
+  '$timeout', '$parse', function($timeout, $parse) {
+    return {
+      restrict: 'A',
+      link: function(scope, element, attrs) {
+        var fnGetter, options, simulateDefault;
+        fnGetter = null;
+        options = {};
+        attrs.$observe('promisedFn', function(fn) {
+          return fnGetter = $parse(fn);
+        });
+        simulateDefault = function() {
+          return $timeout(function() {
+            var newEvent;
+            newEvent = document.createEvent("MouseEvents");
+            newEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, null);
+            newEvent.preventedDefault = true;
+            return element[0].dispatchEvent(newEvent);
+          });
+        };
+        return element.on('click', function(event) {
+          var ref;
+          if ((event.originalEvent || event).preventedDefault) {
+            return;
+          }
+          options = {
+            ctrlKey: event.ctrlKey,
+            altKey: event.altKey,
+            shiftKey: event.shiftKey,
+            metaKey: event.metaKey,
+            button: event.button
+          };
+          if ((ref = fnGetter(scope)) != null ? typeof ref.then === "function" ? ref.then(simulateDefault) : void 0 : void 0) {
+            return event.preventDefault();
+          }
+        });
+      }
+    };
+  }
+]);
+;'use strict';
 angular.module('touk.text.directives', ['touk.text.validators']).directive('validateText', [
   'TextValidator', function(Validator) {
     return {
