@@ -1,7 +1,7 @@
 'use strict';
 angular.module('touk.applyFilter', []).run([
   '$rootScope', '$parse', function($scope, $parse) {
-    return $scope.applyFilter = function(filter, value) {
+    return $scope.constructor.prototype.applyFilter = function(filter, value) {
       if (filter) {
         return $parse(value + " | " + filter)();
       } else {
