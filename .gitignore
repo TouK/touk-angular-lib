@@ -26,5 +26,5 @@ test-results.xml
 target/
 build/
 
-dist/vendor.js
-dist/vendor.js.map
+dist/js/vendor.js
+dist/js/vendor.js.map
