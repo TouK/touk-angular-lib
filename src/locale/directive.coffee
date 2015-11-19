@@ -9,7 +9,7 @@ angular.module 'touk.locale.directive', [
 	template: """
 		<select
 			ng-model="LSC.currentLocaleDisplayName"
-			ng-options="name for {{name | translate}} in LSC.localesDisplayNames"
+			ng-options="name as (name | translate) for name in LSC.localesDisplayNames"
 			ng-change="LSC.changeLanguage()"
 		></select>
 	"""
