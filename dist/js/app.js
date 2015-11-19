@@ -210,7 +210,7 @@ angular.module('touk.locale.directive', ['touk.locale.service']).directive('lang
   var LanguageSelect;
   return {
     restrict: 'EA',
-    template: "<select\n	ng-model=\"LSC.currentLocaleDisplayName\"\n	ng-options=\"name for {{name | translate}} in LSC.localesDisplayNames\"\n	ng-change=\"LSC.changeLanguage()\"\n></select>",
+    template: "<select\n	ng-model=\"LSC.currentLocaleDisplayName\"\n	ng-options=\"name as (name | translate) for name in LSC.localesDisplayNames\"\n	ng-change=\"LSC.changeLanguage()\"\n></select>",
     controller: [
       'LocaleService', '$scope', LanguageSelect = (function() {
         function LanguageSelect($service, $scope) {
