@@ -889,7 +889,7 @@ angular.module('touk.showErrors', []).directive('showErrors', [
         })();
         addWatch = function($controller, i) {
           return scope.$watch(function() {
-            return $controller.$dirty && $controller.$invalid;
+            return $controller.$touched && $controller.$invalid;
           }, function(isInvalid) {
             return scope.validators[i] = isInvalid;
           });
