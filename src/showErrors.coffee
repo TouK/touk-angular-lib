@@ -20,5 +20,8 @@ angular.module 'touk.showErrors', []
 			, (isInvalid) -> scope.validators[i] = isInvalid
 
 		scope.$watchCollection 'validators', (vals) ->
-			return elm.addClass 'has-error' for val in vals when val
+			scope.$hasErrors = _.any vals
+			if scope.$hasErrors
+				elm.addClass 'has-error'
+				return
 			elm.removeClass 'has-error'

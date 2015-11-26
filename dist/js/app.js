@@ -903,12 +903,10 @@ angular.module('touk.showErrors', []).directive('showErrors', function() {
         }) : void 0;
       };
       return scope.$watchCollection('validators', function(vals) {
-        var j, len, val;
-        for (j = 0, len = vals.length; j < len; j++) {
-          val = vals[j];
-          if (val) {
-            return elm.addClass('has-error');
-          }
+        scope.$hasErrors = _.any(vals);
+        if (scope.$hasErrors) {
+          elm.addClass('has-error');
+          return;
         }
         return elm.removeClass('has-error');
       });
