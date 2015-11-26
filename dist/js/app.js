@@ -870,6 +870,49 @@ angular.module('touk.promisedLink', []).directive('promisedFn', [
   }
 ]);
 ;'use strict';
+angular.module('touk.showErrors', []).directive('showErrors', [
+  '$timeout', function($timeout) {
+    return {
+      scope: true,
+      link: function(scope, elm, attrs) {
+        var addWatch, controllers, ctrl, i, input, j, len;
+        scope.validators = [];
+        controllers = (function() {
+          var j, len, ref, results;
+          ref = elm.find('input, select, textarea');
+          results = [];
+          for (j = 0, len = ref.length; j < len; j++) {
+            input = ref[j];
+            results.push(angular.element(input).controller('ngModel'));
+          }
+          return results;
+        })();
+        addWatch = function($controller, i) {
+          return scope.$watch(function() {
+            return $controller.$dirty && $controller.$invalid;
+          }, function(isInvalid) {
+            return scope.validators[i] = isInvalid;
+          });
+        };
+        for (i = j = 0, len = controllers.length; j < len; i = ++j) {
+          ctrl = controllers[i];
+          addWatch(ctrl, i);
+        }
+        return scope.$watchCollection('validators', function(vals) {
+          var k, len1, val;
+          for (k = 0, len1 = vals.length; k < len1; k++) {
+            val = vals[k];
+            if (val) {
+              return elm.addClass('has-error');
+            }
+          }
+          return elm.removeClass('has-error');
+        });
+      }
+    };
+  }
+]);
+;'use strict';
 angular.module('touk.text.directives', ['touk.text.validators']).directive('validateText', [
   'TextValidator', function(Validator) {
     return {
