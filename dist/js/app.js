@@ -896,11 +896,11 @@ angular.module('touk.showErrors', []).directive('showErrors', function() {
         return results;
       });
       addWatch = function($controller, i) {
-        return $controller.$$hasErrorsWatch != null ? $controller.$$hasErrorsWatch : $controller.$$hasErrorsWatch = scope.$watch(function() {
+        return $controller != null ? $controller.$$hasErrorsWatch != null ? $controller.$$hasErrorsWatch : $controller.$$hasErrorsWatch = scope.$watch(function() {
           return $controller.$touched && $controller.$invalid;
         }, function(isInvalid) {
           return scope.validators[i] = isInvalid;
-        });
+        }) : void 0;
       };
       return scope.$watchCollection('validators', function(vals) {
         var j, len, val;

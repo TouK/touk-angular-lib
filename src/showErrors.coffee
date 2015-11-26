@@ -15,7 +15,7 @@ angular.module 'touk.showErrors', []
 			addWatch ctrl, i for ctrl, i in controllers
 
 		addWatch = ($controller, i) ->
-			$controller.$$hasErrorsWatch ?= scope.$watch ->
+			$controller?.$$hasErrorsWatch ?= scope.$watch ->
 				$controller.$touched and $controller.$invalid
 			, (isInvalid) -> scope.validators[i] = isInvalid
 
