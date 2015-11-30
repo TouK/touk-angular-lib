@@ -991,22 +991,19 @@ angular.module('touk.zipcode.directives', ['touk.zipcode.filters']).directive('m
       restrict: 'A',
       require: 'ngModel',
       link: function(scope, element, attrs, ctrl) {
-        var formatter, parser, ref;
-        parser = function(value) {
-          return value != null ? value.toString().replace(/[^0-9]/g, '').replace(/(\d{2})/, '$1-') : void 0;
-        };
+        var formatter, ref;
         formatter = function(value) {
           return $filter('maskZipcode')(value);
         };
-        ctrl.$parsers.unshift(parser);
+        ctrl.$parsers.unshift(formatter);
         ctrl.$formatters.push(formatter);
         return element.on('blur paste', _.debounce(function() {
           var val;
-          val = formatter(parser(ctrl.$viewValue));
+          val = formatter(ctrl.$viewValue);
           if (ctrl.$viewValue === val) {
             return;
           }
-          ctrl.$viewValue = val;
+          ctrl.$setViewValue(val);
           return ctrl.$render();
         }, ((ref = ctrl.$options) != null ? ref.debounce : void 0) || 100));
       }

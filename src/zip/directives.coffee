@@ -9,21 +9,16 @@ angular.module 'touk.zipcode.directives', [
 	require: 'ngModel'
 	link: (scope, element, attrs, ctrl) ->
 
-		parser = (value) ->
-			value?.toString()
-			.replace /[^0-9]/g, ''
-			.replace /(\d{2})/, '$1-'
-
 		formatter = (value) ->
 			$filter('maskZipcode') value
 
-		ctrl.$parsers.unshift parser
+		ctrl.$parsers.unshift formatter
 		ctrl.$formatters.push formatter
 
 		element.on 'blur paste', _.debounce ->
-			val = formatter parser ctrl.$viewValue
+			val = formatter ctrl.$viewValue
 			return if ctrl.$viewValue is val
-			ctrl.$viewValue = val
+			ctrl.$setViewValue val
 			ctrl.$render()
 		, ctrl.$options?.debounce or 100
 ]
