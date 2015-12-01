@@ -1,36 +1,52 @@
 'use strict'
 
+class PromisedFn
+	constructor: (@$element) ->
+
+	handleClick: (event) =>
+		return if (event.originalEvent or event).preventedDefault
+		event.preventDefault() if @shouldPreventDefault(event)
+
+	shouldPreventDefault: (options) =>
+		returnedValue = @func()
+
+		if typeof returnedValue is 'function'
+			returnedValue = returnedValue()
+
+		return no if returnedValue is true
+
+		promise = returnedValue?.$promise or returnedValue
+		promise = promise?.then?(=> @simulateDefault options)
+
+		return yes if promise or not returnedValue
+
+	simulateDefault: (options) =>
+		event = document.createEvent "MouseEvents"
+
+		event.initMouseEvent "click",
+			true, true, window, 0, 0, 0, 0, 0,
+			options.ctrlKey, options.altKey,
+			options.shiftKey, options.metaKey,
+			options.button, null
+
+		event.preventedDefault = yes
+		@$element[0].dispatchEvent event
+
+
 angular.module 'touk.promisedLink', []
 
-.directive 'promisedFn', [
-	'$timeout'
-	'$parse'
-	($timeout, $parse)->
-		restrict: 'A'
-		link: (scope, element, attrs) ->
-			fnGetter = null
-			options = {}
+.controller 'PromisedFnCtrl', ['$element', PromisedFn]
 
-			attrs.$observe 'promisedFn', (fn) ->
-				fnGetter = $parse(fn)
+.directive 'promisedFn', ->
+	restrict: 'A'
+	controller: 'PromisedFnCtrl as ctrl'
+	bindToController:
+		func: '&promisedFn'
 
-			simulateDefault = ->
-				$timeout ->
-					newEvent = document.createEvent "MouseEvents"
-					newEvent.initMouseEvent "click", true, true, window, 0, 0, 0, 0, 0, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, null
-					newEvent.preventedDefault = yes
-					element[0].dispatchEvent newEvent
+	link: (scope, element) ->
+		element.on 'click', scope.ctrl.handleClick
 
-			element.on 'click', (event) ->
-				return if (event.originalEvent or event).preventedDefault
-				options =
-					ctrlKey: event.ctrlKey
-					altKey: event.altKey
-					shiftKey: event.shiftKey
-					metaKey: event.metaKey
-					button: event.button
-				fn = fnGetter(scope)
-				fn = fn?.$promise or fn
-				if fn.then?(simulateDefault)
-					event.preventDefault()
-]
+
+
+
+

@@ -827,48 +827,70 @@ angular.module('touk.plurals.filters', ['smart']).run([
   }
 ]);
 ;'use strict';
-angular.module('touk.promisedLink', []).directive('promisedFn', [
-  '$timeout', '$parse', function($timeout, $parse) {
-    return {
-      restrict: 'A',
-      link: function(scope, element, attrs) {
-        var fnGetter, options, simulateDefault;
-        fnGetter = null;
-        options = {};
-        attrs.$observe('promisedFn', function(fn) {
-          return fnGetter = $parse(fn);
-        });
-        simulateDefault = function() {
-          return $timeout(function() {
-            var newEvent;
-            newEvent = document.createEvent("MouseEvents");
-            newEvent.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, null);
-            newEvent.preventedDefault = true;
-            return element[0].dispatchEvent(newEvent);
-          });
-        };
-        return element.on('click', function(event) {
-          var fn;
-          if ((event.originalEvent || event).preventedDefault) {
-            return;
-          }
-          options = {
-            ctrlKey: event.ctrlKey,
-            altKey: event.altKey,
-            shiftKey: event.shiftKey,
-            metaKey: event.metaKey,
-            button: event.button
-          };
-          fn = fnGetter(scope);
-          fn = (fn != null ? fn.$promise : void 0) || fn;
-          if (typeof fn.then === "function" ? fn.then(simulateDefault) : void 0) {
-            return event.preventDefault();
-          }
-        });
-      }
-    };
+var PromisedFn,
+  bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+PromisedFn = (function() {
+  function PromisedFn($element) {
+    this.$element = $element;
+    this.simulateDefault = bind(this.simulateDefault, this);
+    this.shouldPreventDefault = bind(this.shouldPreventDefault, this);
+    this.handleClick = bind(this.handleClick, this);
   }
-]);
+
+  PromisedFn.prototype.handleClick = function(event) {
+    if ((event.originalEvent || event).preventedDefault) {
+      return;
+    }
+    if (this.shouldPreventDefault(event)) {
+      return event.preventDefault();
+    }
+  };
+
+  PromisedFn.prototype.shouldPreventDefault = function(options) {
+    var promise, returnedValue;
+    returnedValue = this.func();
+    if (typeof returnedValue === 'function') {
+      returnedValue = returnedValue();
+    }
+    if (returnedValue === true) {
+      return false;
+    }
+    promise = (returnedValue != null ? returnedValue.$promise : void 0) || returnedValue;
+    promise = promise != null ? typeof promise.then === "function" ? promise.then((function(_this) {
+      return function() {
+        return _this.simulateDefault(options);
+      };
+    })(this)) : void 0 : void 0;
+    if (promise || !returnedValue) {
+      return true;
+    }
+  };
+
+  PromisedFn.prototype.simulateDefault = function(options) {
+    var event;
+    event = document.createEvent("MouseEvents");
+    event.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, options.ctrlKey, options.altKey, options.shiftKey, options.metaKey, options.button, null);
+    event.preventedDefault = true;
+    return this.$element[0].dispatchEvent(event);
+  };
+
+  return PromisedFn;
+
+})();
+
+angular.module('touk.promisedLink', []).controller('PromisedFnCtrl', ['$element', PromisedFn]).directive('promisedFn', function() {
+  return {
+    restrict: 'A',
+    controller: 'PromisedFnCtrl as ctrl',
+    bindToController: {
+      func: '&promisedFn'
+    },
+    link: function(scope, element) {
+      return element.on('click', scope.ctrl.handleClick);
+    }
+  };
+});
 ;'use strict';
 angular.module('touk.showErrors', []).directive('showErrors', function() {
   return {
