@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<script src="js/vendor.js"></script>
+	<script src="js/app.js"></script>
+	<script>
+		angular.module('app', [
+			'ngResource',
+			'touk.promisedLink'
+		])
+
+			.run(function($rootScope, $q, $timeout, $resource) {
+
+				$rootScope.fnPromiseResolve = function() {
+					deferred = $q.defer();
+					$timeout(function () {
+						deferred.resolve();
+					}, 100);
+					return deferred.promise
+				};
+
+				$rootScope.fnPromiseReject = function() {
+					deferred = $q.defer();
+					$timeout(function () {
+						deferred.reject();
+					}, 100);
+					return deferred.promise
+				};
+
+				$rootScope.resource = $resource(':file', {file: '@file'});
+
+				$rootScope.resourceDone = $rootScope.resource.get({file: 'next.html'});
+				$rootScope.resourceFailed = $rootScope.resource.get({file: 'next2.html'});
+
+				$rootScope.someFn = function(value) {return value};
+			})
+		;
+	</script>
+</head>
+<body ng-app="app">
+	<h1>test</h1>
+	<p><a id="promised-fn_true" promised-fn="true" href="next.html">promised-fn_true</a></p>
+	<p><a id="promised-fn_false" promised-fn="false" href="next.html">promised-fn_false</a></p>
+	<p><a id="promised-fn_empty" promised-fn href="next.html">promised-fn_empty</a></p>
+	<p><a id="promised-fn_undefined" promised-fn="notExistingVar" href="next.html">promised-fn_undefined</a></p>
+	<p><a id="promised-fn_function-false" promised-fn="someFn(false)" href="next.html">promised-fn_function-false</a></p>
+	<p><a id="promised-fn_function-true" promised-fn="someFn(true)" href="next.html">promised-fn_function-true</a></p>
+	<p><a id="promised-fn_promise-resolve" promised-fn="fnPromiseResolve()" href="next.html">promised-fn_promise-resolve</a></p>
+	<p><a id="promised-fn_promise-reject" promised-fn="fnPromiseReject()" href="next.html">promised-fn_promise-reject</a></p>
+	<p><a id="promised-fn_resource-done" promised-fn="resourceDone" href="next.html">promised-fn_resource-done</a></p>
+	<p><a id="promised-fn_resource-failed" promised-fn="resourceFailed" href="next.html">promised-fn_resource-failed</a></p>
+	<p><a id="promised-fn_call-resource-success" promised-fn="resource.get({file: 'next.html'})" href="next.html">promised-fn_call-resource-success</a></p>
+	<p><a id="promised-fn_call-resource-fail" promised-fn="resource.get({file: 'next2.html'})" href="next.html">promised-fn_call-resource-fail</a></p>
+</body>
+</html>

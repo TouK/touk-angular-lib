@@ -13,8 +13,8 @@ module.exports = (config) ->
 		# list of files / patterns to load in the browser
 		files: [
 			"dist/js/vendor.js"
-			"vendor/**/*.js"
-			"vendor/**/*.coffee"
+#			"vendor/**/*.js"
+#			"vendor/**/*.coffee"
 			"src/**/*.js"
 			"src/**/*.coffee"
 			"bower_components/angular-mocks/angular-mocks.js"
@@ -42,11 +42,11 @@ module.exports = (config) ->
 				"coffee"
 				"coverage"
 			]
-			"vendor/**/*.coffee": [
-				"coffee"
-				"coverage"
-			]
-			"vendor/**/*.js": ["coverage"]
+#			"vendor/**/*.coffee": [
+#				"coffee"
+#				"coverage"
+#			]
+#			"vendor/**/*.js": ["coverage"]
 			"test/unit/**/*.coffee": ["coffee"]
 
 		coverageReporter:

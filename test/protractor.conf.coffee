@@ -1,15 +1,13 @@
 exports.config =
 	# Spec patterns are relative to the location of this config.
-	suites:
-		app: 'e2e/src/**/*.coffee'
+	specs: [
+		'e2e/**/*.coffee'
+	]
 
 	capabilities:
 		browserName: 'chrome'
-		acceptSslCerts: yes
 
-	baseUrl: 'http://localhost:3334/cms/'
-
-	rootElement: 'html'
+	baseUrl: 'http://localhost:8834'
 
 	framework: 'jasmine'
 
