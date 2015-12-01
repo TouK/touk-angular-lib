@@ -28,3 +28,4 @@ build/
 
 dist/js/vendor.js
 dist/js/vendor.js.map
+dist/*.html
