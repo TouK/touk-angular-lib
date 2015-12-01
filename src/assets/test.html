@@ -34,24 +34,43 @@
 				$rootScope.resourceDone = $rootScope.resource.get({file: 'next.html'});
 				$rootScope.resourceFailed = $rootScope.resource.get({file: 'next2.html'});
 
-				$rootScope.someFn = function(value) {return value};
+				$rootScope.someFn = function(value) {
+					return value
+				};
+
+				$rootScope.someFn2 = function() {
+					return false
+				};
+
+				$rootScope.someFn3 = function() {
+					return true
+				};
 			})
 		;
 	</script>
 </head>
 <body ng-app="app">
 	<h1>test</h1>
-	<p><a id="promised-fn_true" promised-fn="true" href="next.html">promised-fn_true</a></p>
-	<p><a id="promised-fn_false" promised-fn="false" href="next.html">promised-fn_false</a></p>
-	<p><a id="promised-fn_empty" promised-fn href="next.html">promised-fn_empty</a></p>
-	<p><a id="promised-fn_undefined" promised-fn="notExistingVar" href="next.html">promised-fn_undefined</a></p>
-	<p><a id="promised-fn_function-false" promised-fn="someFn(false)" href="next.html">promised-fn_function-false</a></p>
-	<p><a id="promised-fn_function-true" promised-fn="someFn(true)" href="next.html">promised-fn_function-true</a></p>
-	<p><a id="promised-fn_promise-resolve" promised-fn="fnPromiseResolve()" href="next.html">promised-fn_promise-resolve</a></p>
-	<p><a id="promised-fn_promise-reject" promised-fn="fnPromiseReject()" href="next.html">promised-fn_promise-reject</a></p>
-	<p><a id="promised-fn_resource-done" promised-fn="resourceDone" href="next.html">promised-fn_resource-done</a></p>
-	<p><a id="promised-fn_resource-failed" promised-fn="resourceFailed" href="next.html">promised-fn_resource-failed</a></p>
-	<p><a id="promised-fn_call-resource-success" promised-fn="resource.get({file: 'next.html'})" href="next.html">promised-fn_call-resource-success</a></p>
-	<p><a id="promised-fn_call-resource-fail" promised-fn="resource.get({file: 'next2.html'})" href="next.html">promised-fn_call-resource-fail</a></p>
+	<h2>promised-fn</h2>
+	<h3>follow link</h3>
+	<ul>
+		<li><a id="promised-fn_true" promised-fn="true" href="next.html">true</a></li>
+		<li><a id="promised-fn_function-true" promised-fn="someFn(true)" href="next.html">function call, return true</a></li>
+		<li><a id="promised-fn_detect-function-true" promised-fn="someFn3" href="next.html">function, return true</a></li>
+		<li><a id="promised-fn_promise-resolve" promised-fn="fnPromiseResolve()" href="next.html">function call, return promise that will be resolved</a></li>
+		<li><a id="promised-fn_resource-done" promised-fn="resourceDone" href="next.html">resource done</a></li>
+		<li><a id="promised-fn_call-resource-success" promised-fn="resource.get({file: 'next.html'})" href="next.html">call resource function that will succeed</a></li>
+	</ul>
+	<h3>ignore link</h3>
+	<ul>
+		<li><a id="promised-fn_false" promised-fn="false" href="next.html">false</a></li>
+		<li><a id="promised-fn_empty" promised-fn href="next.html">empty attr</a></li>
+		<li><a id="promised-fn_undefined" promised-fn="notExistingVar" href="next.html">undefined</a></li>
+		<li><a id="promised-fn_function-false" promised-fn="someFn(false)" href="next.html">function call, return false</a></li>
+		<li><a id="promised-fn_detect-function-false" promised-fn="someFn2" href="next.html">function, return false</a></li>
+		<li><a id="promised-fn_promise-reject" promised-fn="fnPromiseReject()" href="next.html">function call, return promise that will be rejected</a></li>
+		<li><a id="promised-fn_resource-failed" promised-fn="resourceFailed" href="next.html">resource failed</a></li>
+		<li><a id="promised-fn_call-resource-fail" promised-fn="resource.get({file: 'next2.html'})" href="next.html">call resource function that will fail</a></li>
+	</ul>
 </body>
 </html>

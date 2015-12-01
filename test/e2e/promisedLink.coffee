@@ -24,6 +24,12 @@ describe 'promisedLink directive', ->
 		element(By.id 'promised-fn_function-true').click()
 		expect(browser.getCurrentUrl()).toMatch 'next'
 
+	it 'should detect and call function and use returned value', ->
+		element(By.id 'promised-fn_detect-function-false').click()
+		expect(browser.getCurrentUrl()).toMatch 'test'
+		element(By.id 'promised-fn_detect-function-true').click()
+		expect(browser.getCurrentUrl()).toMatch 'next'
+
 	it 'should follow link for resolved promise', ->
 		element(By.id 'promised-fn_promise-resolve').click()
 		browser.sleep 200
