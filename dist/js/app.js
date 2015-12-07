@@ -306,98 +306,170 @@ angular.module('touk.locale.service', ['pascalprecht.translate', 'tmh.dynamicLoc
   })());
 });
 ;'use strict';
-angular.module('touk.money.directives', ['touk.money.filters', 'drahak.hotkeys']).directive('unitFloat', [
-  '$parse', '$filter', 'HotKeysElement', function($parse, $filter, HotKeys) {
-    return {
-      restrict: 'A',
-      require: 'ngModel',
-      link: function(scope, element, attrs, ctrl) {
-        var change, formatter, hotkeys, keyDown, keyDownFast, keyUp, keyUpFast, parser, ref, setter, step, translateFn;
-        step = 1;
-        attrs.$observe('step', function(value) {
-          if (value != null) {
-            return step = value;
-          }
-        });
-        keyUp = 'up';
-        keyUpFast = 'up+shift';
-        keyDown = 'down';
-        keyDownFast = 'down+shift';
-        setter = $parse(attrs.ngModel).assign;
-        change = function(amount) {
-          var value;
-          value = ctrl.$modelValue || 0;
-          value = value + amount * step;
-          if (!attrs.allowNegative) {
-            value = Math.max(value, 0);
-          }
-          setter(scope, value);
-          return ctrl.$setDirty();
+var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+angular.module('touk.money.directives', ['touk.money.filters', 'drahak.hotkeys']).directive('unitFloat', function() {
+  var UnitFloat;
+  return {
+    restrict: 'A',
+    require: ['unitFloat', 'ngModel'],
+    bindToController: {
+      value: '=ngModel',
+      step: '=?',
+      allowNegative: '=?',
+      precision: '=?',
+      translateFn: '&?',
+      filter: '@?',
+      prefix: '@?',
+      suffix: '@?'
+    },
+    controller: [
+      'HotKeysElement', '$element', '$parse', UnitFloat = (function() {
+        UnitFloat.prototype.step = 1;
+
+        UnitFloat.prototype.allowNegative = true;
+
+        UnitFloat.prototype.keyUp = 'up';
+
+        UnitFloat.prototype.keyUpFast = 'up+shift';
+
+        UnitFloat.prototype.keyDown = 'down';
+
+        UnitFloat.prototype.keyDownFast = 'down+shift';
+
+        function UnitFloat(HotKeysElement, element, $parse) {
+          this.$parse = $parse;
+          this.render = bind(this.render, this);
+          this.round = bind(this.round, this);
+          this.formatter = bind(this.formatter, this);
+          this.parser = bind(this.parser, this);
+          this.change = bind(this.change, this);
+          this.destructor = bind(this.destructor, this);
+          this.unbindKeys = bind(this.unbindKeys, this);
+          this.bindKeys = bind(this.bindKeys, this);
+          this.$hotkeys = HotKeysElement(element);
+          this.bindKeys();
+        }
+
+        UnitFloat.prototype.bindKeys = function() {
+          return this.$hotkeys.bind(this.keyUp, (function(_this) {
+            return function() {
+              return _this.change(+1);
+            };
+          })(this)).bind(this.keyUpFast, (function(_this) {
+            return function() {
+              return _this.change(+10);
+            };
+          })(this)).bind(this.keyDown, (function(_this) {
+            return function() {
+              return _this.change(-1);
+            };
+          })(this)).bind(this.keyDownFast, (function(_this) {
+            return function() {
+              return _this.change(-10);
+            };
+          })(this));
         };
-        hotkeys = HotKeys(element);
-        hotkeys.bind(keyUp, function() {
-          return change(+1);
-        });
-        hotkeys.bind(keyUpFast, function() {
-          return change(+10);
-        });
-        hotkeys.bind(keyDown, function() {
-          return change(-1);
-        });
-        hotkeys.bind(keyDownFast, function() {
-          return change(-10);
-        });
-        scope.$on('$destroy', function() {
-          return hotkeys.unbind(keyUp).unbind(keyUpFast).unbind(keyDown).unbind(keyDownFast);
-        });
-        parser = function(value) {
+
+        UnitFloat.prototype.unbindKeys = function() {
+          return this.$hotkeys.unbind(this.keyUp).unbind(this.keyUpFast).unbind(this.keyDown).unbind(this.keyDownFast);
+        };
+
+        UnitFloat.prototype.destructor = function() {
+          return this.unbindKeys();
+        };
+
+        UnitFloat.prototype.change = function(amount) {
+          var value;
+          value = this.model.$modelValue || 0;
+          value = value + amount * this.step;
+          if (!this.allowNegative) {
+            value = this.getPositive(value);
+          }
+          this.value = value;
+          return this.model.$setDirty();
+        };
+
+        UnitFloat.prototype.parser = function(value) {
           var quantity;
           if (!value) {
             return null;
           }
           quantity = value.toString().replace(/\./g, ',').replace(/[^-\d,]/g, '').replace(/[,](\d*)$/g, '.$10');
           quantity = parseFloat(quantity);
-          if (!attrs.allowNegative) {
-            quantity = Math.max(quantity, 0);
+          if (!this.allowNegative) {
+            quantity = this.getPositive(quantity);
           }
           if (isNaN(quantity)) {
             return null;
           }
-          return quantity.decimal(attrs.precision);
+          return this.round(quantity);
         };
-        translateFn = $parse(attrs.translateFn)(scope);
-        formatter = function(value) {
+
+        UnitFloat.prototype.formatter = function(value) {
           var filter, quantity;
           quantity = parseFloat(value);
           if (isNaN(quantity)) {
             return null;
           }
-          quantity = quantity.decimal(attrs.precision);
-          if (translateFn && !attrs.filter) {
-            value = translateFn(quantity);
+          quantity = this.round(quantity);
+          if ((this.translateFn != null) && !this.filter) {
+            value = this.translateFn({
+              value: quantity
+            });
           } else {
-            if (attrs.filter) {
-              filter = ' ' + $filter(attrs.filter)(quantity, true);
-            }
-            value = $filter('unitFloat')(quantity, attrs.precision) + (filter || '');
+            filter = this.filter || ("unitFloat : " + (this.getPositive(this.precision)));
+            value = this.applyFilter(quantity, filter);
           }
-          return "" + (attrs.prefix || '') + value + (attrs.suffix || '');
+          return "" + (this.prefix || '') + value + (this.suffix || '');
         };
-        ctrl.$parsers.unshift(parser);
-        ctrl.$formatters.unshift(formatter);
-        return element.on('blur paste', _.debounce(function() {
-          var val;
-          val = formatter(parser(ctrl.$viewValue));
-          if (ctrl.$viewValue === val) {
-            return;
+
+        UnitFloat.prototype.getPositive = function(value) {
+          if (value == null) {
+            value = 0;
           }
-          ctrl.$viewValue = val;
-          return ctrl.$render();
-        }, ((ref = ctrl.$options) != null ? ref.debounce : void 0) || 800));
-      }
-    };
-  }
-]);
+          return Math.max(value, 0);
+        };
+
+        UnitFloat.prototype.round = function(value) {
+          return this.applyFilter(value, "decimal : " + (this.getPositive(this.precision)));
+        };
+
+        UnitFloat.prototype.applyFilter = function(quantity, filter) {
+          return this.$parse(quantity + " | " + filter)();
+        };
+
+        UnitFloat.prototype.render = function() {
+          var ref;
+          return (this.render = _.debounce((function(_this) {
+            return function() {
+              var val;
+              val = _this.formatter(_this.parser(_this.model.$viewValue));
+              if (_this.model.$viewValue === val) {
+                return;
+              }
+              _this.model.$viewValue = val;
+              return _this.model.$render();
+            };
+          })(this), ((ref = this.model.$options) != null ? ref.debounce : void 0) || 100))();
+        };
+
+        return UnitFloat;
+
+      })()
+    ],
+    controllerAs: 'UF',
+    link: function(scope, element, attrs, ctrls) {
+      var UF;
+      UF = ctrls[0], UF.model = ctrls[1];
+      UF.model.$parsers.unshift(UF.parser);
+      UF.model.$formatters.unshift(UF.formatter);
+      element.on('blur paste', UF.render);
+      scope.$watch('UF', UF.render, true);
+      return scope.$on('$destroy', UF.destructor);
+    }
+  };
+});
 ;'use strict';
 angular.module('touk.money.filters', []).filter('money', [
   '$filter', function($filter) {

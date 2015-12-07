@@ -5,43 +5,60 @@ angular.module 'touk.money.directives', [
 	'drahak.hotkeys'
 ]
 
-.directive 'unitFloat', [
-	'$parse', '$filter', 'HotKeysElement'
-	($parse, $filter, HotKeys)->
-		restrict: 'A'
-		require: 'ngModel'
-		link: (scope, element, attrs, ctrl) ->
-			step = 1
-			attrs.$observe 'step', (value) -> step = value if value?
+.directive 'unitFloat', ->
+	restrict: 'A'
+	require: ['unitFloat','ngModel']
+	bindToController:
+		value: '=ngModel'
+		step: '=?'
+		allowNegative: '=?'
+		precision: '=?'
+		translateFn: '&?'
+		filter: '@?'
+		prefix: '@?'
+		suffix: '@?'
 
-			keyUp = 'up'
-			keyUpFast = 'up+shift'
-			keyDown = 'down'
-			keyDownFast = 'down+shift'
+	controller: [
+		'HotKeysElement', '$element', '$parse'
+		class UnitFloat
+			step: 1
+			allowNegative: yes
 
-			setter = $parse(attrs.ngModel).assign
+			keyUp: 'up'
+			keyUpFast: 'up+shift'
+			keyDown: 'down'
+			keyDownFast: 'down+shift'
 
-			change = (amount) ->
-				value = ctrl.$modelValue or 0
-				value = value + amount * step
-				value = Math.max(value, 0) unless attrs.allowNegative
-				setter scope, value
-				ctrl.$setDirty()
+			constructor: (HotKeysElement, element, @$parse) ->
+				@$hotkeys = HotKeysElement element
 
-			hotkeys = HotKeys element
-			hotkeys.bind keyUp, -> change +1
-			hotkeys.bind keyUpFast, -> change +10
-			hotkeys.bind keyDown, -> change -1
-			hotkeys.bind keyDownFast, -> change -10
+				@bindKeys()
 
-			scope.$on '$destroy', ->
-				hotkeys
-				.unbind keyUp
-				.unbind keyUpFast
-				.unbind keyDown
-				.unbind keyDownFast
+			bindKeys: =>
+				@$hotkeys
+				.bind @keyUp, => @change +1
+				.bind @keyUpFast, => @change +10
+				.bind @keyDown, => @change -1
+				.bind @keyDownFast, => @change -10
 
-			parser = (value) ->
+			unbindKeys: =>
+				@$hotkeys
+				.unbind @keyUp
+				.unbind @keyUpFast
+				.unbind @keyDown
+				.unbind @keyDownFast
+
+			destructor: =>
+				@unbindKeys()
+
+			change: (amount) =>
+				value = @model.$modelValue or 0
+				value = value + amount * @step
+				value = @getPositive(value) unless @allowNegative
+				@value = value
+				@model.$setDirty()
+
+			parser: (value) =>
 				return null unless value
 
 				quantity = value.toString()
@@ -50,35 +67,48 @@ angular.module 'touk.money.directives', [
 				.replace /[,](\d*)$/g, '.$10'
 
 				quantity = parseFloat(quantity)
-				quantity = Math.max(quantity, 0) unless attrs.allowNegative
+				quantity = @getPositive(quantity) unless @allowNegative
 
 				return null if isNaN quantity
-				quantity.decimal attrs.precision
+				@round quantity
 
-			translateFn = $parse(attrs.translateFn) scope
-			formatter = (value) ->
+			formatter: (value) =>
 				quantity = parseFloat(value)
 
 				return null if isNaN quantity
 
-				quantity = quantity.decimal attrs.precision
-				if translateFn and not attrs.filter
-					value = translateFn quantity
+				quantity = @round quantity
+
+				if @translateFn? and not @filter
+					value = @translateFn value: quantity
 				else
-					if attrs.filter
-						filter = ' ' + $filter(attrs.filter) quantity, yes
-					value = $filter('unitFloat')(quantity, attrs.precision) + (filter or '')
-				return "#{attrs.prefix or ''}#{value}#{attrs.suffix or ''}"
+					filter = @filter or "unitFloat : #{@getPositive(@precision)}"
+					value = @applyFilter quantity, filter
 
+				return "#{@prefix or ''}#{value}#{@suffix or ''}"
 
-			ctrl.$parsers.unshift parser
-			ctrl.$formatters.unshift formatter
+			getPositive: (value = 0) -> Math.max value, 0
 
-			element.on 'blur paste', _.debounce ->
-				val = formatter parser ctrl.$viewValue
-				return if ctrl.$viewValue is val
-				ctrl.$viewValue = val
-				ctrl.$render()
-			, ctrl.$options?.debounce or 800
+			round: (value) => @applyFilter value, "decimal : #{@getPositive(@precision)}"
 
-]
+			applyFilter: (quantity, filter) -> do @$parse "#{quantity} | #{filter}"
+
+			render: => do @render = _.debounce =>
+				val = @formatter @parser @model.$viewValue
+				return if @model.$viewValue is val
+				@model.$viewValue = val
+				@model.$render()
+			, @model.$options?.debounce or 100
+	]
+	controllerAs: 'UF'
+
+	link: (scope, element, attrs, ctrls) ->
+		[UF, UF.model] = ctrls
+
+		UF.model.$parsers.unshift UF.parser
+		UF.model.$formatters.unshift UF.formatter
+
+		element.on 'blur paste', UF.render
+		scope.$watch 'UF', UF.render, yes
+
+		scope.$on '$destroy', UF.destructor
