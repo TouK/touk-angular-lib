@@ -100,8 +100,14 @@ angular.module 'touk.money.directives', [
 			fix: (value) =>
 				floor = Math.min(@floor, @ceiling) or @floor
 				ceiling = Math.max(@floor, @ceiling) or @ceiling
-				value = Math.min(value, ceiling) or value
-				value = Math.max(value, floor) or value
+
+				min = Math.min(value, ceiling)
+				value = min unless isNaN min
+
+				max = Math.max(value, floor)
+				value = max unless isNaN max
+
+				return value
 
 			round: (value) =>
 				@applyFilter @fix(value), "decimal : #{@getPositive(@precision)}"

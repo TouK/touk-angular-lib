@@ -441,11 +441,18 @@ angular.module('touk.money.directives', ['touk.money.filters', 'drahak.hotkeys']
         };
 
         UnitFloat.prototype.fix = function(value) {
-          var ceiling, floor;
+          var ceiling, floor, max, min;
           floor = Math.min(this.floor, this.ceiling) || this.floor;
           ceiling = Math.max(this.floor, this.ceiling) || this.ceiling;
-          value = Math.min(value, ceiling) || value;
-          return value = Math.max(value, floor) || value;
+          min = Math.min(value, ceiling);
+          if (!isNaN(min)) {
+            value = min;
+          }
+          max = Math.max(value, floor);
+          if (!isNaN(max)) {
+            value = max;
+          }
+          return value;
         };
 
         UnitFloat.prototype.round = function(value) {
