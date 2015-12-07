@@ -17,6 +17,8 @@ angular.module 'touk.money.directives', [
 		filter: '@?'
 		prefix: '@?'
 		suffix: '@?'
+		ceiling: '=?max'
+		floor: '=?min'
 
 	controller: [
 		'HotKeysElement', '$element', '$parse'
@@ -53,7 +55,13 @@ angular.module 'touk.money.directives', [
 
 			change: (amount) =>
 				value = @model.$modelValue or 0
-				value = value + amount * @step
+
+				step = 1
+				step = step/10 for i in [0...@getPositive @precision]
+				step = Math.max @step, step
+
+				value += amount * step
+				value = @round value
 				value = @getPositive(value) unless @allowNegative
 				@value = value
 				@model.$setDirty()
@@ -89,16 +97,26 @@ angular.module 'touk.money.directives', [
 
 			getPositive: (value = 0) -> Math.max value, 0
 
-			round: (value) => @applyFilter value, "decimal : #{@getPositive(@precision)}"
+			fix: (value) =>
+				floor = Math.min(@floor, @ceiling) or @floor
+				ceiling = Math.max(@floor, @ceiling) or @ceiling
+				value = Math.min(value, ceiling) or value
+				value = Math.max(value, floor) or value
+
+			round: (value) =>
+				@applyFilter @fix(value), "decimal : #{@getPositive(@precision)}"
 
 			applyFilter: (quantity, filter) -> do @$parse "#{quantity} | #{filter}"
 
-			render: => do @render = _.debounce =>
-				val = @formatter @parser @model.$viewValue
-				return if @model.$viewValue is val
-				@model.$viewValue = val
-				@model.$render()
-			, @model.$options?.debounce or 100
+			render: =>
+				@render = _.debounce =>
+					console.log 'a'
+					val = @formatter @parser @model.$viewValue
+					return if @model.$viewValue is val
+					@model.$setViewValue val
+					@model.$render()
+				, @model.$options?.debounce or 800
+				@render()
 	]
 	controllerAs: 'UF'
 
@@ -108,7 +126,11 @@ angular.module 'touk.money.directives', [
 		UF.model.$parsers.unshift UF.parser
 		UF.model.$formatters.unshift UF.formatter
 
-		element.on 'blur paste', UF.render
-		scope.$watch 'UF', UF.render, yes
+		element.on 'blur paste', ->
+			UF.render()
+
+		scope.$watch 'UF', ->
+			UF.render()
+		, yes
 
 		scope.$on '$destroy', UF.destructor

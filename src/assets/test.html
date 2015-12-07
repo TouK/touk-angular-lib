@@ -51,6 +51,11 @@
 					return $filter("money")(value, 0);
 				};
 
+				$rootScope.precision = 2;
+				$rootScope.floor = 1.125;
+				$rootScope.ceiling = 2.250;
+				$rootScope.step = 0.01;
+
 			})
 		;
 	</script>
@@ -58,13 +63,16 @@
 <body ng-app="app">
 	<h1>test</h1>
 		<h2>unit-float</h2>
-			precision: <input type="number" ng-model="precision">
-			prefix: <input type="text" ng-model="prefix">
-			suffix: <input type="text" ng-model="suffix">
-			filter: <input type="text" ng-model="filter">
+			PRECISION: <input type="number" ng-model="precision" >
+			FLOOR: <input type="number" ng-model="floor" >
+			CEILING: <input type="number" ng-model="ceiling" >
+			STEP: <input type="number" ng-model="step" >
+			PREFIX: <input type="text" ng-model="prefix">
+			SUFFIX: <input type="text" ng-model="suffix">
+			FILTER: <input type="text" ng-model="filter">
 			<div>
-				<input type="text" ng-model="unitFloatModel" unit-float precision="precision" prefix="{{prefix}}" suffix="{{suffix}}" filter='{{filter}}'>
-				<div id="unitFloatModel">model: <span>{{ unitFloatModel }}</span></div>
+				<input type="text" ng-model="unitFloatModel" unit-float precision="precision" step="step" max="ceiling" min="floor" prefix="{{prefix}}" suffix="{{suffix}}" filter='{{filter}}'>
+				<div id="unitFloatModel">MODEL: <span>{{ unitFloatModel }}</span></div>
 			</div>
 		<h2>promised-fn</h2>
 			<h3>follow link</h3>

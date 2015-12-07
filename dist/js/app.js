@@ -321,7 +321,9 @@ angular.module('touk.money.directives', ['touk.money.filters', 'drahak.hotkeys']
       translateFn: '&?',
       filter: '@?',
       prefix: '@?',
-      suffix: '@?'
+      suffix: '@?',
+      ceiling: '=?max',
+      floor: '=?min'
     },
     controller: [
       'HotKeysElement', '$element', '$parse', UnitFloat = (function() {
@@ -341,6 +343,7 @@ angular.module('touk.money.directives', ['touk.money.filters', 'drahak.hotkeys']
           this.$parse = $parse;
           this.render = bind(this.render, this);
           this.round = bind(this.round, this);
+          this.fix = bind(this.fix, this);
           this.formatter = bind(this.formatter, this);
           this.parser = bind(this.parser, this);
           this.change = bind(this.change, this);
@@ -380,9 +383,15 @@ angular.module('touk.money.directives', ['touk.money.filters', 'drahak.hotkeys']
         };
 
         UnitFloat.prototype.change = function(amount) {
-          var value;
+          var i, j, ref, step, value;
           value = this.model.$modelValue || 0;
-          value = value + amount * this.step;
+          step = 1;
+          for (i = j = 0, ref = this.getPositive(this.precision); 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
+            step = step / 10;
+          }
+          step = Math.max(this.step, step);
+          value += amount * step;
+          value = this.round(value);
           if (!this.allowNegative) {
             value = this.getPositive(value);
           }
@@ -431,8 +440,16 @@ angular.module('touk.money.directives', ['touk.money.filters', 'drahak.hotkeys']
           return Math.max(value, 0);
         };
 
+        UnitFloat.prototype.fix = function(value) {
+          var ceiling, floor;
+          floor = Math.min(this.floor, this.ceiling) || this.floor;
+          ceiling = Math.max(this.floor, this.ceiling) || this.ceiling;
+          value = Math.min(value, ceiling) || value;
+          return value = Math.max(value, floor) || value;
+        };
+
         UnitFloat.prototype.round = function(value) {
-          return this.applyFilter(value, "decimal : " + (this.getPositive(this.precision)));
+          return this.applyFilter(this.fix(value), "decimal : " + (this.getPositive(this.precision)));
         };
 
         UnitFloat.prototype.applyFilter = function(quantity, filter) {
@@ -441,17 +458,19 @@ angular.module('touk.money.directives', ['touk.money.filters', 'drahak.hotkeys']
 
         UnitFloat.prototype.render = function() {
           var ref;
-          return (this.render = _.debounce((function(_this) {
+          this.render = _.debounce((function(_this) {
             return function() {
               var val;
+              console.log('a');
               val = _this.formatter(_this.parser(_this.model.$viewValue));
               if (_this.model.$viewValue === val) {
                 return;
               }
-              _this.model.$viewValue = val;
+              _this.model.$setViewValue(val);
               return _this.model.$render();
             };
-          })(this), ((ref = this.model.$options) != null ? ref.debounce : void 0) || 100))();
+          })(this), ((ref = this.model.$options) != null ? ref.debounce : void 0) || 800);
+          return this.render();
         };
 
         return UnitFloat;
@@ -464,8 +483,12 @@ angular.module('touk.money.directives', ['touk.money.filters', 'drahak.hotkeys']
       UF = ctrls[0], UF.model = ctrls[1];
       UF.model.$parsers.unshift(UF.parser);
       UF.model.$formatters.unshift(UF.formatter);
-      element.on('blur paste', UF.render);
-      scope.$watch('UF', UF.render, true);
+      element.on('blur paste', function() {
+        return UF.render();
+      });
+      scope.$watch('UF', function() {
+        return UF.render();
+      }, true);
       return scope.$on('$destroy', UF.destructor);
     }
   };
