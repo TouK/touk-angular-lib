@@ -1001,11 +1001,11 @@ angular.module('touk.showErrors', []).directive('showErrors', function() {
       var addWatch, getControllers;
       scope.validators = [];
       getControllers = function() {
-        var input, j, len, ref, results;
-        ref = elm.find('input, select, textarea');
+        var input, j, len, modelEls, results;
+        modelEls = elm[0].querySelectorAll('[ng-model]');
         results = [];
-        for (j = 0, len = ref.length; j < len; j++) {
-          input = ref[j];
+        for (j = 0, len = modelEls.length; j < len; j++) {
+          input = modelEls[j];
           results.push(angular.element(input).controller('ngModel'));
         }
         return results;

@@ -7,9 +7,10 @@ angular.module 'touk.showErrors', []
 	link: (scope, elm, attrs) ->
 		scope.validators = []
 
-		getControllers = -> (
-			angular.element(input).controller 'ngModel' for input in elm.find 'input, select, textarea'
-		)
+		getControllers = ->
+			# TODO: maybe support IE8
+			modelEls = elm[0].querySelectorAll '[ng-model]'
+			(angular.element(input).controller 'ngModel' for input in modelEls)
 
 		scope.$watchCollection getControllers, (controllers) ->
 			addWatch ctrl, i for ctrl, i in controllers
