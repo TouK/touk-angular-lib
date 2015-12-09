@@ -12,7 +12,7 @@ angular.module('touk.applyFilter', []).run([
 ]);
 ;'use strict';
 angular.module('touk.dowod.directives', ['touk.dowod.validators']).directive('validateDowod', [
-  'dowod', 'HotKeysElement', function(validator, HotKeys) {
+  'dowod', function(validator) {
     return {
       restrict: 'A',
       require: 'ngModel',

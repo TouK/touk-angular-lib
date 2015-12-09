@@ -4,7 +4,7 @@ angular.module 'touk.dowod.directives', [
 	'touk.dowod.validators'
 ]
 
-.directive 'validateDowod', ['dowod', 'HotKeysElement', (validator, HotKeys) ->
+.directive 'validateDowod', ['dowod', (validator) ->
 	restrict: 'A'
 	require: 'ngModel'
 	link: (scope, element, attrs, ctrl) ->
