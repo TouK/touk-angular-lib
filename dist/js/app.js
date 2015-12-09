@@ -308,7 +308,7 @@ angular.module('touk.locale.service', ['pascalprecht.translate', 'tmh.dynamicLoc
 ;'use strict';
 var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
-angular.module('touk.money.directives', ['touk.money.filters', 'drahak.hotkeys']).directive('unitFloat', function() {
+angular.module('touk.money.directives', ['touk.money.filters']).directive('unitFloat', function() {
   var UnitFloat;
   return {
     restrict: 'A',
@@ -325,178 +325,174 @@ angular.module('touk.money.directives', ['touk.money.filters', 'drahak.hotkeys']
       ceiling: '=?max',
       floor: '=?min'
     },
-    controller: [
-      'HotKeysElement', '$element', '$parse', UnitFloat = (function() {
-        UnitFloat.prototype.step = 1;
+    scope: true,
+    controller: UnitFloat = (function() {
+      UnitFloat.prototype.step = 1;
 
-        UnitFloat.prototype.allowNegative = true;
+      UnitFloat.prototype.allowNegative = true;
 
-        UnitFloat.prototype.keyUp = 'up';
+      UnitFloat.prototype.keyUp = 38;
 
-        UnitFloat.prototype.keyUpFast = 'up+shift';
+      UnitFloat.prototype.keyDown = 40;
 
-        UnitFloat.prototype.keyDown = 'down';
+      UnitFloat.$inject = ['$element', '$parse'];
 
-        UnitFloat.prototype.keyDownFast = 'down+shift';
+      function UnitFloat($element, $parse) {
+        this.$element = $element;
+        this.$parse = $parse;
+        this.render = bind(this.render, this);
+        this.round = bind(this.round, this);
+        this.fix = bind(this.fix, this);
+        this.formatter = bind(this.formatter, this);
+        this.parser = bind(this.parser, this);
+        this.change = bind(this.change, this);
+        this.destructor = bind(this.destructor, this);
+        this.unbindEvents = bind(this.unbindEvents, this);
+        this.bindEvents = bind(this.bindEvents, this);
+      }
 
-        function UnitFloat(HotKeysElement, element, $parse) {
-          this.$parse = $parse;
-          this.render = bind(this.render, this);
-          this.round = bind(this.round, this);
-          this.fix = bind(this.fix, this);
-          this.formatter = bind(this.formatter, this);
-          this.parser = bind(this.parser, this);
-          this.change = bind(this.change, this);
-          this.destructor = bind(this.destructor, this);
-          this.unbindKeys = bind(this.unbindKeys, this);
-          this.bindKeys = bind(this.bindKeys, this);
-          this.$hotkeys = HotKeysElement(element);
-          this.bindKeys();
+      UnitFloat.prototype.bindEvents = function() {
+        this.$element.on('keydown', (function(_this) {
+          return function(event) {
+            switch (event.which) {
+              case _this.keyUp:
+                _this.change(event.shiftKey ? +10 : +1);
+                return event.preventDefault();
+              case _this.keyDown:
+                _this.change(event.shiftKey ? -10 : -1);
+                return event.preventDefault();
+            }
+          };
+        })(this));
+        return this.$element.on('blur paste keydown', (function(_this) {
+          return function() {
+            return _this.render();
+          };
+        })(this));
+      };
+
+      UnitFloat.prototype.unbindEvents = function() {
+        return this.$element.off();
+      };
+
+      UnitFloat.prototype.destructor = function() {
+        return this.unbindEvents();
+      };
+
+      UnitFloat.prototype.change = function(amount) {
+        var i, j, ref, step, value;
+        value = this.model.$modelValue || 0;
+        step = 1;
+        for (i = j = 0, ref = this.getPositive(this.precision); 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
+          step = step / 10;
         }
+        step = Math.max(this.step, step);
+        value += amount * step;
+        value = this.round(value);
+        if (!this.allowNegative) {
+          value = this.getPositive(value);
+        }
+        this.model.$setDirty();
+        this.model.$setViewValue(this.formatter(value));
+        return this.model.$render();
+      };
 
-        UnitFloat.prototype.bindKeys = function() {
-          return this.$hotkeys.bind(this.keyUp, (function(_this) {
-            return function() {
-              return _this.change(+1);
-            };
-          })(this)).bind(this.keyUpFast, (function(_this) {
-            return function() {
-              return _this.change(+10);
-            };
-          })(this)).bind(this.keyDown, (function(_this) {
-            return function() {
-              return _this.change(-1);
-            };
-          })(this)).bind(this.keyDownFast, (function(_this) {
-            return function() {
-              return _this.change(-10);
-            };
-          })(this));
-        };
+      UnitFloat.prototype.parser = function(value) {
+        var quantity;
+        if (!value) {
+          return null;
+        }
+        quantity = value.toString().replace(/\./g, ',').replace(/[^-\d,]/g, '').replace(/[,](\d*)$/g, '.$10');
+        quantity = parseFloat(quantity);
+        if (!this.allowNegative) {
+          quantity = this.getPositive(quantity);
+        }
+        if (isNaN(quantity)) {
+          return null;
+        }
+        return this.round(quantity);
+      };
 
-        UnitFloat.prototype.unbindKeys = function() {
-          return this.$hotkeys.unbind(this.keyUp).unbind(this.keyUpFast).unbind(this.keyDown).unbind(this.keyDownFast);
-        };
+      UnitFloat.prototype.formatter = function(value) {
+        var filter, quantity;
+        quantity = parseFloat(value);
+        if (isNaN(quantity)) {
+          return null;
+        }
+        quantity = this.round(quantity);
+        if ((this.translateFn != null) && !this.filter) {
+          value = this.translateFn({
+            value: quantity
+          });
+        } else {
+          filter = this.filter || ("unitFloat : " + (this.getPositive(this.precision)));
+          value = this.applyFilter(quantity, filter);
+        }
+        return "" + (this.prefix || '') + value + (this.suffix || '');
+      };
 
-        UnitFloat.prototype.destructor = function() {
-          return this.unbindKeys();
-        };
+      UnitFloat.prototype.getPositive = function(value) {
+        if (value == null) {
+          value = 0;
+        }
+        return Math.max(value, 0);
+      };
 
-        UnitFloat.prototype.change = function(amount) {
-          var i, j, ref, step, value;
-          value = this.model.$modelValue || 0;
-          step = 1;
-          for (i = j = 0, ref = this.getPositive(this.precision); 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
-            step = step / 10;
-          }
-          step = Math.max(this.step, step);
-          value += amount * step;
-          value = this.round(value);
-          if (!this.allowNegative) {
-            value = this.getPositive(value);
-          }
-          this.value = value;
-          return this.model.$setDirty();
-        };
+      UnitFloat.prototype.fix = function(value) {
+        var ceiling, floor, max, min;
+        floor = Math.min(this.floor, this.ceiling) || this.floor;
+        ceiling = Math.max(this.floor, this.ceiling) || this.ceiling;
+        min = Math.min(value, ceiling);
+        if (!isNaN(min)) {
+          value = min;
+        }
+        max = Math.max(value, floor);
+        if (!isNaN(max)) {
+          value = max;
+        }
+        return value;
+      };
 
-        UnitFloat.prototype.parser = function(value) {
-          var quantity;
-          if (!value) {
-            return null;
-          }
-          quantity = value.toString().replace(/\./g, ',').replace(/[^-\d,]/g, '').replace(/[,](\d*)$/g, '.$10');
-          quantity = parseFloat(quantity);
-          if (!this.allowNegative) {
-            quantity = this.getPositive(quantity);
-          }
-          if (isNaN(quantity)) {
-            return null;
-          }
-          return this.round(quantity);
-        };
+      UnitFloat.prototype.round = function(value) {
+        return this.applyFilter(this.fix(value), "decimal : " + (this.getPositive(this.precision)));
+      };
 
-        UnitFloat.prototype.formatter = function(value) {
-          var filter, quantity;
-          quantity = parseFloat(value);
-          if (isNaN(quantity)) {
-            return null;
-          }
-          quantity = this.round(quantity);
-          if ((this.translateFn != null) && !this.filter) {
-            value = this.translateFn({
-              value: quantity
-            });
-          } else {
-            filter = this.filter || ("unitFloat : " + (this.getPositive(this.precision)));
-            value = this.applyFilter(quantity, filter);
-          }
-          return "" + (this.prefix || '') + value + (this.suffix || '');
-        };
+      UnitFloat.prototype.applyFilter = function(quantity, filter) {
+        return this.$parse(quantity + " | " + filter)();
+      };
 
-        UnitFloat.prototype.getPositive = function(value) {
-          if (value == null) {
-            value = 0;
-          }
-          return Math.max(value, 0);
-        };
+      UnitFloat.prototype.render = function() {
+        var ref, ref1;
+        this.render = _.debounce((function(_this) {
+          return function() {
+            var val;
+            val = _this.formatter(_this.parser(_this.model.$viewValue));
+            if (_this.model.$viewValue === val) {
+              return;
+            }
+            _this.model.$setViewValue(val);
+            return _this.model.$render();
+          };
+        })(this), ((ref = this.model) != null ? (ref1 = ref.$options) != null ? ref1.debounce : void 0 : void 0) || 800);
+        return this.render();
+      };
 
-        UnitFloat.prototype.fix = function(value) {
-          var ceiling, floor, max, min;
-          floor = Math.min(this.floor, this.ceiling) || this.floor;
-          ceiling = Math.max(this.floor, this.ceiling) || this.ceiling;
-          min = Math.min(value, ceiling);
-          if (!isNaN(min)) {
-            value = min;
-          }
-          max = Math.max(value, floor);
-          if (!isNaN(max)) {
-            value = max;
-          }
-          return value;
-        };
+      return UnitFloat;
 
-        UnitFloat.prototype.round = function(value) {
-          return this.applyFilter(this.fix(value), "decimal : " + (this.getPositive(this.precision)));
-        };
-
-        UnitFloat.prototype.applyFilter = function(quantity, filter) {
-          return this.$parse(quantity + " | " + filter)();
-        };
-
-        UnitFloat.prototype.render = function() {
-          var ref;
-          this.render = _.debounce((function(_this) {
-            return function() {
-              var val;
-              console.log('a');
-              val = _this.formatter(_this.parser(_this.model.$viewValue));
-              if (_this.model.$viewValue === val) {
-                return;
-              }
-              _this.model.$setViewValue(val);
-              return _this.model.$render();
-            };
-          })(this), ((ref = this.model.$options) != null ? ref.debounce : void 0) || 800);
-          return this.render();
-        };
-
-        return UnitFloat;
-
-      })()
-    ],
+    })(),
     controllerAs: 'UF',
     link: function(scope, element, attrs, ctrls) {
       var UF;
       UF = ctrls[0], UF.model = ctrls[1];
       UF.model.$parsers.unshift(UF.parser);
       UF.model.$formatters.unshift(UF.formatter);
-      element.on('blur paste', function() {
-        return UF.render();
-      });
+      UF.bindEvents();
       scope.$watch('UF', function() {
         return UF.render();
       }, true);
-      return scope.$on('$destroy', UF.destructor);
+      return scope.$on('$destroy', function() {
+        return UF.destructor();
+      });
     }
   };
 });
