@@ -15,8 +15,11 @@ angular.module('touk.dowod.directives', ['touk.dowod.validators']).directive('va
   'dowod', function(validator) {
     return {
       restrict: 'A',
-      require: 'ngModel',
+      require: '?ngModel',
       link: function(scope, element, attrs, ctrl) {
+        if (ctrl == null) {
+          return;
+        }
         return ctrl.$validators.dowod = function(modelValue, viewValue) {
           var value;
           value = modelValue || viewValue;
@@ -123,8 +126,11 @@ angular.module('touk.email.directives', ['touk.email.validators']).directive('va
   'EmailValidator', function(Validator) {
     return {
       restrict: 'A',
-      require: 'ngModel',
+      require: '?ngModel',
       link: function(scope, element, attrs, ctrl) {
+        if (ctrl == null) {
+          return;
+        }
         return ctrl.$validators.email = function(modelValue, viewValue) {
           var value;
           value = modelValue || viewValue;
@@ -312,7 +318,7 @@ angular.module('touk.money.directives', ['touk.money.filters']).directive('unitF
   var UnitFloat;
   return {
     restrict: 'A',
-    require: ['unitFloat', 'ngModel'],
+    require: ['unitFloat', '?ngModel'],
     bindToController: {
       value: '=ngModel',
       step: '=?',
@@ -466,6 +472,9 @@ angular.module('touk.money.directives', ['touk.money.filters']).directive('unitF
         this.render = _.debounce((function(_this) {
           return function() {
             var val;
+            if (_this.model == null) {
+              return;
+            }
             val = _this.formatter(_this.parser(_this.model.$viewValue));
             if (_this.model.$viewValue === val) {
               return;
@@ -484,6 +493,9 @@ angular.module('touk.money.directives', ['touk.money.filters']).directive('unitF
     link: function(scope, element, attrs, ctrls) {
       var UF;
       UF = ctrls[0], UF.model = ctrls[1];
+      if (UF.model == null) {
+        return;
+      }
       UF.model.$parsers.unshift(UF.parser);
       UF.model.$formatters.unshift(UF.formatter);
       UF.bindEvents();
@@ -566,9 +578,12 @@ angular.module('touk.nip.directives', ['touk.nip.filters', 'touk.nip.validator']
   '$filter', function($filter) {
     return {
       restrict: 'A',
-      require: 'ngModel',
+      require: '?ngModel',
       link: function(scope, element, attrs, ctrl) {
         var formatter, parser, ref;
+        if (ctrl == null) {
+          return;
+        }
         parser = function(value) {
           return value != null ? value.replace(/[^0-9]/g, '') : void 0;
         };
@@ -593,8 +608,11 @@ angular.module('touk.nip.directives', ['touk.nip.filters', 'touk.nip.validator']
   'nip', function(validator) {
     return {
       restrict: 'A',
-      require: 'ngModel',
+      require: '?ngModel',
       link: function(scope, element, attrs, ctrl) {
+        if (ctrl == null) {
+          return;
+        }
         return ctrl.$validators.nip = function(modelValue, viewValue) {
           var value;
           value = modelValue || viewValue;
@@ -677,9 +695,12 @@ angular.module('touk.nrb.directives', ['touk.nrb.filters', 'touk.nrb.validators'
   '$filter', function($filter) {
     return {
       restrict: 'A',
-      require: 'ngModel',
+      require: '?ngModel',
       link: function(scope, element, attrs, ctrl) {
         var formatter, parser, ref;
+        if (ctrl == null) {
+          return;
+        }
         parser = function(value) {
           return value != null ? value.replace(/[^0-9]/g, '') : void 0;
         };
@@ -704,8 +725,11 @@ angular.module('touk.nrb.directives', ['touk.nrb.filters', 'touk.nrb.validators'
   'nrb', function(validator) {
     return {
       restrict: 'A',
-      require: 'ngModel',
+      require: '?ngModel',
       link: function(scope, element, attrs, ctrl) {
+        if (ctrl == null) {
+          return;
+        }
         return ctrl.$validators.nrb = function(modelValue, viewValue) {
           var value;
           value = modelValue || viewValue;
@@ -785,8 +809,11 @@ angular.module('touk.pesel.directives', ['touk.pesel.validators']).directive('va
   'pesel', function(validator) {
     return {
       restrict: 'A',
-      require: 'ngModel',
+      require: '?ngModel',
       link: function(scope, element, attrs, ctrl) {
+        if (ctrl == null) {
+          return;
+        }
         return ctrl.$validators.pesel = function(modelValue, viewValue) {
           var value;
           value = modelValue || viewValue;
@@ -1038,8 +1065,11 @@ angular.module('touk.text.directives', ['touk.text.validators']).directive('vali
   'TextValidator', function(Validator) {
     return {
       restrict: 'A',
-      require: 'ngModel',
+      require: '?ngModel',
       link: function(scope, element, attrs, ctrl) {
+        if (ctrl == null) {
+          return;
+        }
         return ctrl.$validators.text = function(modelValue, viewValue) {
           var value;
           value = modelValue || viewValue;
@@ -1109,9 +1139,12 @@ angular.module('touk.zipcode.directives', ['touk.zipcode.filters']).directive('m
   '$filter', function($filter) {
     return {
       restrict: 'A',
-      require: 'ngModel',
+      require: '?ngModel',
       link: function(scope, element, attrs, ctrl) {
         var formatter, ref;
+        if (ctrl == null) {
+          return;
+        }
         formatter = function(value) {
           return $filter('maskZipcode')(value);
         };

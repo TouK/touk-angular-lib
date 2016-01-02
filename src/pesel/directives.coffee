@@ -6,8 +6,10 @@ angular.module 'touk.pesel.directives', [
 
 .directive 'validatePesel', ['pesel', (validator) ->
 	restrict: 'A'
-	require: 'ngModel'
+	require: '?ngModel'
 	link: (scope, element, attrs, ctrl) ->
+		return unless ctrl?
+
 		ctrl.$validators.pesel = (modelValue, viewValue) ->
 			value = modelValue or viewValue
 			ctrl.$isEmpty(value) or validator.validate value

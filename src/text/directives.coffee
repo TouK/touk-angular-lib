@@ -6,8 +6,9 @@ angular.module 'touk.text.directives', [
 
 .directive 'validateText', ['TextValidator', (Validator) ->
 	restrict: 'A'
-	require: 'ngModel'
+	require: '?ngModel'
 	link: (scope, element, attrs, ctrl) ->
+		return unless ctrl?
 
 		ctrl.$validators.text = (modelValue, viewValue) ->
 			value = modelValue or viewValue
