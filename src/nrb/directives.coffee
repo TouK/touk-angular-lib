@@ -7,8 +7,9 @@ angular.module 'touk.nrb.directives', [
 
 .directive 'maskNrb', ['$filter', ($filter) ->
 	restrict: 'A'
-	require: 'ngModel'
+	require: '?ngModel'
 	link: (scope, element, attrs, ctrl) ->
+		return unless ctrl?
 
 		parser = (value) ->
 			value?.replace /[^0-9]/g, ''
@@ -29,8 +30,10 @@ angular.module 'touk.nrb.directives', [
 
 .directive 'validateNrb', ['nrb', (validator) ->
 	restrict: 'A'
-	require: 'ngModel'
+	require: '?ngModel'
 	link: (scope, element, attrs, ctrl) ->
+		return unless ctrl?
+
 		ctrl.$validators.nrb = (modelValue, viewValue) ->
 			value = modelValue or viewValue
 			ctrl.$isEmpty(value) or validator.validate value

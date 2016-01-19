@@ -6,8 +6,9 @@ angular.module 'touk.zipcode.directives', [
 
 .directive 'maskZipcode', ['$filter', ($filter) ->
 	restrict: 'A'
-	require: 'ngModel'
+	require: '?ngModel'
 	link: (scope, element, attrs, ctrl) ->
+		return unless ctrl?
 
 		formatter = (value) ->
 			$filter('maskZipcode') value

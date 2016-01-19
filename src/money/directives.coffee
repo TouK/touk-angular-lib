@@ -6,7 +6,7 @@ angular.module 'touk.money.directives', [
 
 .directive 'unitFloat', ->
 	restrict: 'A'
-	require: ['unitFloat','ngModel']
+	require: ['unitFloat','?ngModel']
 	bindToController:
 		value: '=ngModel'
 		step: '=?'
@@ -112,6 +112,7 @@ angular.module 'touk.money.directives', [
 
 		render: =>
 			@render = _.debounce =>
+				return unless @model?
 				val = @formatter @parser @model.$viewValue
 				return if @model.$viewValue is val
 				@model.$setViewValue val
@@ -125,6 +126,8 @@ angular.module 'touk.money.directives', [
 
 	link: (scope, element, attrs, ctrls) ->
 		[UF, UF.model] = ctrls
+
+		return unless UF.model?
 
 		UF.model.$parsers.unshift UF.parser
 		UF.model.$formatters.unshift UF.formatter
