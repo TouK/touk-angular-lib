@@ -47,3 +47,8 @@ angular.module 'touk.locale.service', [
 			'$translate', '$rootScope', 'tmhDynamicLocale'
 			-> new LocaleService(arguments..., @LOCALES)
 		]
+
+.run [
+	'LocaleService', (LocaleService) ->
+		# inject of LocaleService required when directive is not used
+]
