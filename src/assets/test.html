@@ -6,94 +6,98 @@
 	<script src="js/vendor.js"></script>
 	<script src="js/app.js"></script>
 	<script>
+
+		function TestController($q, $timeout, $resource, $filter) {
+			var ctrl = this;
+
+			ctrl.fnPromiseResolve = function() {
+				deferred = $q.defer();
+				$timeout(function () {
+					deferred.resolve();
+				}, 100);
+				return deferred.promise
+			};
+
+			ctrl.fnPromiseReject = function() {
+				deferred = $q.defer();
+				$timeout(function () {
+					deferred.reject();
+				}, 100);
+				return deferred.promise
+			};
+
+			ctrl.resource = $resource(':file', {file: '@file'});
+
+			ctrl.resourceDone = ctrl.resource.get({file: 'next.html'});
+			ctrl.resourceFailed = ctrl.resource.get({file: 'next2.html'});
+
+			ctrl.someFn = function(value) {
+				return value
+			};
+
+			ctrl.someFn2 = function() {
+				return false
+			};
+
+			ctrl.someFn3 = function() {
+				return true
+			};
+
+			ctrl.moneyFn = function(value) {
+				return $filter("money")(value, 0);
+			};
+
+			ctrl.precision = 2;
+			ctrl.floor = 1.125;
+			ctrl.ceiling = 2.250;
+			ctrl.step = 0.01;
+		}
+
 		angular.module('app', [
 			'ngResource',
 			'touk.promisedLink',
 			'touk.money.directives'
 		])
+			.controller("TestController", ['$q', '$timeout', '$resource', '$filter', TestController]);
 
-			.run(function($rootScope, $q, $timeout, $resource, $filter) {
-
-				$rootScope.fnPromiseResolve = function() {
-					deferred = $q.defer();
-					$timeout(function () {
-						deferred.resolve();
-					}, 100);
-					return deferred.promise
-				};
-
-				$rootScope.fnPromiseReject = function() {
-					deferred = $q.defer();
-					$timeout(function () {
-						deferred.reject();
-					}, 100);
-					return deferred.promise
-				};
-
-				$rootScope.resource = $resource(':file', {file: '@file'});
-
-				$rootScope.resourceDone = $rootScope.resource.get({file: 'next.html'});
-				$rootScope.resourceFailed = $rootScope.resource.get({file: 'next2.html'});
-
-				$rootScope.someFn = function(value) {
-					return value
-				};
-
-				$rootScope.someFn2 = function() {
-					return false
-				};
-
-				$rootScope.someFn3 = function() {
-					return true
-				};
-
-				$rootScope.moneyFn = function(value) {
-					return $filter("money")(value, 0);
-				};
-
-				$rootScope.precision = 2;
-				$rootScope.floor = 1.125;
-				$rootScope.ceiling = 2.250;
-				$rootScope.step = 0.01;
-
-			})
-		;
 	</script>
 </head>
 <body ng-app="app">
 	<h1>test</h1>
-		<h2>unit-float</h2>
-			PRECISION: <input type="number" ng-model="precision" >
-			FLOOR: <input type="number" ng-model="floor" >
-			CEILING: <input type="number" ng-model="ceiling" >
-			STEP: <input type="number" ng-model="step" >
-			PREFIX: <input type="text" ng-model="prefix">
-			SUFFIX: <input type="text" ng-model="suffix">
-			FILTER: <input type="text" ng-model="filter">
-			<div>
-				<input type="text" ng-model="unitFloatModel" unit-float precision="precision" step="step" max="ceiling" min="floor" prefix="{{prefix}}" suffix="{{suffix}}" filter='{{filter}}'>
-				<div id="unitFloatModel">MODEL: <span>{{ unitFloatModel }}</span></div>
-			</div>
-		<h2>promised-fn</h2>
-			<h3>follow link</h3>
-				<ul>
-					<li><a id="promised-fn_true" promised-fn="true" href="next.html">true</a></li>
-					<li><a id="promised-fn_function-true" promised-fn="someFn(true)" href="next.html">function call, return true</a></li>
-					<li><a id="promised-fn_detect-function-true" promised-fn="someFn3" href="next.html">function, return true</a></li>
-					<li><a id="promised-fn_promise-resolve" promised-fn="fnPromiseResolve()" href="next.html">function call, return promise that will be resolved</a></li>
-					<li><a id="promised-fn_resource-done" promised-fn="resourceDone" href="next.html">resource done</a></li>
-					<li><a id="promised-fn_call-resource-success" promised-fn="resource.get({file: 'next.html'})" href="next.html">call resource function that will succeed</a></li>
-				</ul>
-			<h3>ignore link</h3>
-				<ul>
-					<li><a id="promised-fn_false" promised-fn="false" href="next.html">false</a></li>
-					<li><a id="promised-fn_empty" promised-fn href="next.html">empty attr</a></li>
-					<li><a id="promised-fn_undefined" promised-fn="notExistingVar" href="next.html">undefined</a></li>
-					<li><a id="promised-fn_function-false" promised-fn="someFn(false)" href="next.html">function call, return false</a></li>
-					<li><a id="promised-fn_detect-function-false" promised-fn="someFn2" href="next.html">function, return false</a></li>
-					<li><a id="promised-fn_promise-reject" promised-fn="fnPromiseReject()" href="next.html">function call, return promise that will be rejected</a></li>
-					<li><a id="promised-fn_resource-failed" promised-fn="resourceFailed" href="next.html">resource failed</a></li>
-					<li><a id="promised-fn_call-resource-fail" promised-fn="resource.get({file: 'next2.html'})" href="next.html">call resource function that will fail</a></li>
-				</ul>
+		<div ng-controller="TestController as TC">
+			<h2>unit-float</h2>
+				PRECISION: <input type="number" ng-model="TC.precision" >
+				FLOOR: <input type="number" ng-model="TC.floor" >
+				CEILING: <input type="number" ng-model="TC.ceiling" >
+				STEP: <input type="number" ng-model="TC.step" >
+				PREFIX: <input type="text" ng-model="TC.prefix">
+				SUFFIX: <input type="text" ng-model="TC.suffix">
+				FILTER: <input type="text" ng-model="TC.filter">
+				<div>
+					<input type="text" ng-model="TC.unitFloatModel" unit-float precision="TC.precision" step="TC.step" max="TC.ceiling" min="TC.floor" prefix="{{TC.prefix}}" suffix="{{TC.suffix}}" filter='{{TC.filter}}'>
+					<div id="TC.unitFloatModel">MODEL: <span>{{TC.unitFloatModel | json}}</span></div>
+				</div>
+			<h2>promised-fn</h2>
+				<h3>follow link</h3>
+					<ul>
+						<li><a id="promised-fn_true" promised-fn="true" href="next.html">true</a></li>
+						<li><a id="promised-fn_function-true" promised-fn="TC.someFn(true)" href="next.html">function call, return true</a></li>
+						<li><a id="promised-fn_detect-function-true" promised-fn="TC.someFn3" href="next.html">function, return true</a></li>
+						<li><a id="promised-fn_promise-resolve" promised-fn="TC.fnPromiseResolve()" href="next.html">function call, return promise that will be resolved</a></li>
+						<li><a id="promised-fn_resource-done" promised-fn="TC.resourceDone" href="next.html">resource done</a></li>
+						<li><a id="promised-fn_call-resource-success" promised-fn="TC.resource.get({file: 'next.html'})" href="next.html">call resource function that will succeed</a></li>
+					</ul>
+				<h3>ignore link</h3>
+					<ul>
+						<li><a id="promised-fn_false" promised-fn="false" href="next.html">false</a></li>
+						<li><a id="promised-fn_empty" promised-fn href="next.html">empty attr</a></li>
+						<li><a id="promised-fn_undefined" promised-fn="TC.notExistingVar" href="next.html">undefined</a></li>
+						<li><a id="promised-fn_function-false" promised-fn="TC.someFn(false)" href="next.html">function call, return false</a></li>
+						<li><a id="promised-fn_detect-function-false" promised-fn="TC.someFn2" href="next.html">function, return false</a></li>
+						<li><a id="promised-fn_promise-reject" promised-fn="TC.fnPromiseReject()" href="next.html">function call, return promise that will be rejected</a></li>
+						<li><a id="promised-fn_resource-failed" promised-fn="TC.resourceFailed" href="next.html">resource failed</a></li>
+						<li><a id="promised-fn_call-resource-fail" promised-fn="TC.resource.get({file: 'next2.html'})" href="next.html">call resource function that will fail</a></li>
+					</ul>
+		</div>
 </body>
 </html>
