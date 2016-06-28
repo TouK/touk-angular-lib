@@ -1,10 +1,12 @@
 'use strict'
 
 class PromisedFn
-	constructor: (@$element) ->
+	@$inject: ['$element', '$attrs']
+	constructor: (@$element, @$attrs) ->
 
 	handleClick: (event) =>
 		return if (event.originalEvent or event).preventedDefault
+		return if @$attrs.disabled
 		event.preventDefault() if @shouldPreventDefault(event)
 
 	shouldPreventDefault: (options) =>
@@ -35,16 +37,15 @@ class PromisedFn
 
 angular.module 'touk.promisedLink', []
 
-.controller 'PromisedFnCtrl', ['$element', PromisedFn]
-
 .directive 'promisedFn', ->
 	restrict: 'A'
-	controller: 'PromisedFnCtrl as ctrl'
+	controller: PromisedFn
+	controllerAs: 'ctrl'
 	bindToController:
 		func: '&promisedFn'
 
-	link: (scope, element) ->
-		element.on 'click', scope.ctrl.handleClick
+	link: (scope, element, attrs, ctrl) ->
+		element.on 'click', ctrl.handleClick
 
 
 
