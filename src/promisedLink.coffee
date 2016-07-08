@@ -1,39 +1,42 @@
 'use strict'
 
 class PromisedFn
-	@$inject: ['$element', '$attrs']
-	constructor: (@$element, @$attrs) ->
+	@$inject: ['$scope','$element', '$attrs', '$q', '$timeout']
+	constructor: ($scope, @$element, @$attrs, @$q, @$timeout) ->
+		@$element.on 'click', @handleClick
 
 	handleClick: (event) =>
-		return if (event.originalEvent or event).preventedDefault
 		return if @$attrs.disabled
-		event.preventDefault() if @shouldPreventDefault(event)
+		@preventDefault ?= @shouldPreventDefault(event)
+		event.preventDefault() if @preventDefault
 
 	shouldPreventDefault: (options) =>
 		returnedValue = @func()
 
-		if typeof returnedValue is 'function'
+		if angular.isFunction returnedValue
 			returnedValue = returnedValue()
 
 		return no if returnedValue is true
 
-		promise = returnedValue?.$promise or returnedValue
-		promise = promise?.then?(=> @simulateDefault options)
+		@promise = @$q.when returnedValue
+		.then => @simulateDefault options
+		.catch => @preventDefault = null
 
-		return yes if promise or not returnedValue
+		return yes if @promise or not returnedValue
 
 	simulateDefault: (options) =>
 		event = document.createEvent "MouseEvents"
-
 		event.initMouseEvent "click",
 			true, true, window, 0, 0, 0, 0, 0,
 			options.ctrlKey, options.altKey,
 			options.shiftKey, options.metaKey,
 			options.button, null
 
-		event.preventedDefault = yes
+		@cleanup()
 		@$element[0].dispatchEvent event
 
+	cleanup: =>
+		@$element.off 'click', @handleClick
 
 angular.module 'touk.promisedLink', []
 
@@ -43,11 +46,3 @@ angular.module 'touk.promisedLink', []
 	controllerAs: 'ctrl'
 	bindToController:
 		func: '&promisedFn'
-
-	link: (scope, element, attrs, ctrl) ->
-		element.on 'click', ctrl.handleClick
-
-
-
-
-
