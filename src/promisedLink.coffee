@@ -8,7 +8,10 @@ class PromisedFn
 	handleClick: (event) =>
 		return if @$attrs.disabled
 		@preventDefault ?= @shouldPreventDefault(event)
-		event.preventDefault() if @preventDefault
+		if @preventDefault
+			event.preventDefault()
+			event.stopPropagation()
+			event.stopImmediatePropagation()
 
 	shouldPreventDefault: (options) =>
 		returnedValue = @func()
