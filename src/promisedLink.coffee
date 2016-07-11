@@ -6,6 +6,7 @@ class PromisedFn
 		@$element.on 'click', @handleClick
 
 	handleClick: (event) =>
+		return if (event.originalEvent or event).preventedDefault
 		return if @$attrs.disabled
 		@preventDefault ?= @shouldPreventDefault(event)
 		if @preventDefault
@@ -21,11 +22,11 @@ class PromisedFn
 
 		return no if returnedValue is true
 
-		@promise = @$q.when returnedValue
+		promise = @$q.when(returnedValue.$promise or returnedValue)
 		.then => @simulateDefault options
-		.catch => @preventDefault = null
+		.finally => delete @preventDefault
 
-		return yes if @promise or not returnedValue
+		return yes if promise or not returnedValue
 
 	simulateDefault: (options) =>
 		event = document.createEvent "MouseEvents"
@@ -35,11 +36,8 @@ class PromisedFn
 			options.shiftKey, options.metaKey,
 			options.button, null
 
-		@cleanup()
+		event.preventedDefault = yes
 		@$element[0].dispatchEvent event
-
-	cleanup: =>
-		@$element.off 'click', @handleClick
 
 angular.module 'touk.promisedLink', []
 
