@@ -1,3 +1,5 @@
+Angular 1 modules with common validators and filters. see test specs and code form more info.
+
 ## id
 
 ##### modules:  `touk.dowod.directives`, `touk.dowod.validators`
