@@ -197,7 +197,7 @@ configuration and use of `pascalprecht.translate`, `tmh.dynamicLocale`, see code
 `promisedFn` directive
 - blocks click events on element until promise resolved or returned value
 - accepts `&promisedFn` returning promise or value
-- see at e2e test
+- see e2e test
 
 
 ##### modules:  `touk.applyFilter`
